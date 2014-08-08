@@ -1,0 +1,3 @@
+include COPYING
+recursive-include sample *.py *.html
+recursive-include src/django_kerberos/templates *.html
