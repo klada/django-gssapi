@@ -1,0 +1,91 @@
+GSSAPI authentication for Django
+==================================
+
+Provide GSSAPI (SPNEGO) authentication to Django applications.
+
+It's a rewrite of django-kerberos using python-gssapi.
+
+It's only tested with MIT Kerberos 5 using package k5test.
+
+Python 2 and 3, Django >1.8 are supported.
+
+Basic usage
+===========
+
+Add this to your project `urls.py`::
+
+    url('^auth/gssapi/', include('django_gssapi.urls')),
+
+And use the default authentication backend, by adding that to your `settings.py` file::
+
+    AUTHENTICATION_BACKENDS = (
+        'django_gssapi.backends.GSSAPIBackend',
+    )
+
+View
+====
+
+django-gssapi provide a base LoginView that you can subclass to get the
+behaviour your need, the main extension points are:
+
+- `challenge()` returns the 401 response with the challenge, you should override it
+  to show a template explaining the failure,
+- `success(user)` it should log the given user and redirect to REDIRECT_FIELD_NAME,
+- `get_service_name()` it should return a gssapi.Name for your service, by
+  default it returns None, so GSSAPI will match any name available (for example
+  with Kerberos it will match any name in your keytab, like
+  @HTTP/my.domain.com@).
+
+Settings
+========
+
+To make your application use GSSAPI as its main login method::
+
+    LOGIN_URL = 'gssapi-login'
+
+Your application need an environment where the GSSAPI mechanism like Kerberos
+will work, for Kerberos it means having a default keytab of creating one and
+setting its path in KRB5_KTNAME or you can use `GSSAPI_STORE` with MIT Kerberos
+5 and credential store extension to indicate a keytab::
+
+    GSSAPI_STORE = {'keytab': 'FILE:/var/lib/mykeytab'}
+
+You can also force a GSSAPI name for you service with::
+
+    import gssapi
+
+    GSSAPI_NAME = gssapi.Name('HTTP/my.service.com', gssapi.MechType.hostbased_service)
+
+GSSAPI authentication backend
+=============================
+
+A dummy backend is provided in `django_gssapi.backends.GSSAPIBackend` it looks
+up user with the same username as the GSSAPI name. You should implement it for
+your use case.
+
+A custom authentication backend must have the following signature::
+
+    class CustomGSSAPIBackend(object):
+        def authenticate(self, request, gssapi_name):
+            pass
+
+The parameter `gssapi_name` is a `gssapi.Name` object, it can be casted to
+string to get the raw name.
+
+Kerberos username/password backend
+==================================
+
+If your users does not have their browser configured for SPNEGO HTTP
+authentication you can also provide a classic login/password form which check
+passwords using Kerberos. For this use
+`django_gssapi.backends.KerberosPasswordBackend`, the username is used as the
+raw principal name.
+
+
+django-rest-framework authentication backend
+============================================
+
+To authenticate users with GSSAPI you can use
+`django_gssapi.drf.GSSAPIAuthentication`, it uses the configured GSSAPI
+authentication backend to find an user and returns the GSSAPI name in
+`request.auth`.
