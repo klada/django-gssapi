@@ -44,13 +44,25 @@ Whether to create user if no existing model can be found, default is `False`.
 A regular expression that the principal must match to get superuser privileges,
 default is `None`. A classic example could be `r'^.*/admin$'`.
 
-`KERBEROS_HASHER_SERVICE_PRINCIPAL`
+`KERBEROS_SERVICE_PRINCIPAL`
 -----------------------------------
 
-The service principal to user when checking a password against the
+The service principal to use when checking a password against the
 KDC, you don't need the secret key for this principal, it should
 just exist inside the Kerberos database as the check is done by
-trying to get ticket for this service.
+trying to get ticket for this service. Default is
+None. It's used only by the pseudo password haser
+and the login/password authentication backend.
+
+`KERBEROS_KEEP_PASSWORD`
+------------------------
+
+Does the KerbersoPasswordBackend store a hash of the
+checked password inside the user model each time a
+user log in. Default is False. It allows your
+website to provide a backup authentication if
+Kerberos is failing or if you ever need to detach
+from the realm.
 
 Custom backend
 ==============
@@ -101,3 +113,11 @@ The content of the password field must be `kerberos$<principal name>`.
 To create an user for a principal you can do::
 
    User.objects.create(username=new_username, password='kerberos$' + principal)
+
+Login/Password backend
+======================
+
+If your users does not have their browser configured
+for SPNEGO HTTP authentication you can also provide
+a classic login/password form which check passwords
+using Kerberos.

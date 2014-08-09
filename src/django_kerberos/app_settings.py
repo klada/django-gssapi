@@ -5,9 +5,11 @@ class AppSettings(object):
     __DEFAULTS = {
             'BACKEND_CREATE': False,
             'BACKEND_ADMIN_REGEXP': None,
-            'SERVICE_PRINCIPAL': None,
+            'DEFAULT_REALM': None,
+            'SERVICE_PRINCIPAL': '',
             'HOSTNAME': None,
             'KEYTAB': None,
+            'KEEP_PASSWORD': False,
     }
 
     def __getattr__(self, name):

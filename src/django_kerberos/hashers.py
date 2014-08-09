@@ -1,9 +1,11 @@
 import logging
-import kerberos
 
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.auth.hashers import BasePasswordHasher
 from django.utils.encoding import force_bytes
+
+from django.contrib.auth.hashers import BasePasswordHasher
+
+import kerberos
 
 from . import app_settings
 
@@ -16,7 +18,7 @@ class KerberosHasher(BasePasswordHasher):
         algorithm, principal = encoded.split('$', 2)
         assert algorithm == self.algorithm
         principal = force_bytes(principal)
-        password = force_bytes(principal)
+        password = force_bytes(password)
         if not app_settings.SERVICE_PRINCIPAL:
             raise ImproperlyConfigured('Kerberos pseudo password hasher needs '
                     'the setting KERBEROS_SERVICE_PRINCIPAL to be '

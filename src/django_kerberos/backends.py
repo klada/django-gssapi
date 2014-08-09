@@ -1,11 +1,15 @@
 import re
-
 import logging
 
 from . import app_settings
 
+from django.core.exceptions import ImproperlyConfigured
+from django.utils.encoding import force_bytes
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+
+import kerberos
 
 class KerberosBackend(ModelBackend):
     def __init__(self):
@@ -38,6 +42,9 @@ class KerberosBackend(ModelBackend):
         kwargs = {username_field: username}
         if app_settings.BACKEND_CREATE:
             user, created = User.objects.get_or_create(**kwargs)
+            if created:
+                user.set_unusable_password()
+                user.save()
         else:
             try:
                 user = User.objects.get(**kwargs)
@@ -47,9 +54,53 @@ class KerberosBackend(ModelBackend):
         return user
 
 
-    def authenticate(self, principal=None):
+    def authenticate(self, principal=None, **kwargs):
         if principal and self.authorize_principal(principal):
             return self.lookup_user(principal)
 
 
+class KerberosPasswordBackend(KerberosBackend):
+    def default_realm(self):
+        '''Default realm for usernames without a realm'''
+        return app_settings.DEFAULT_REALM
 
+    def principal_from_username(self, username):
+        realm = self.default_realm()
+        if '@' not in username and realm:
+            username = u'%s@%s' % (username, realm)
+        return username
+
+    def keep_password(self):
+        '''Do we save a password hash ?'''
+        return app_settings.KEEP_PASSWORD
+
+    def service_principal(self):
+        '''Service principal for checking password'''
+        if not app_settings.SERVICE_PRINCIPAL:
+            raise ImproperlyConfigured('Kerberos password backend needs '
+                    'the setting KERBEROS_SERVICE_PRINCIPAL to be '
+                    'set')
+        return app_settings.SERVICE_PRINCIPAL
+
+    def authenticate(self, username=None, password=None, **kwargs):
+        '''Verify username and password using Kerberos'''
+        if not username:
+            return
+
+        principal = force_bytes(self.principal_from_username(username))
+        password = force_bytes(password)
+
+        try:
+            if not kerberos.checkPassword(principal, password,
+                    self.service_principal(), self.default_realm()):
+                return
+        except kerberos.KrbError, e:
+            logging.getLogger(__name__).error('password validation'
+                    'for principal %r failed %s', principal, e)
+            return
+        else:
+            if principal and self.authorize_principal(principal):
+                user = self.lookup_user(principal)
+                if self.keep_password():
+                    user.set_password(password)
+                return user
