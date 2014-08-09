@@ -2,40 +2,68 @@ import kerberos
 
 from django import http
 from django.template.response import TemplateResponse
-from django.contrib.auth import authenticate, login as auth_login
 from django.conf import settings
+from django.views.generic.base import View
+
+from django.contrib.auth import authenticate, login as auth_login
 
 from . import app_settings
 
-def www_authenticate(request):
-    response = TemplateResponse(request, 'django_kerberos/unauthorized.html', status=401)
-    response['WWW-Authenticate'] = 'Negotiate'
-    return response
 
-def login(request):
-    '''Try to authenticate the user using SPNEGO and Kerberos'''
-    next_url = request.REQUEST.get('next') or settings.LOGIN_REDIRECT_URL
-    host = app_settings.HOSTNAME or request.get_host().split(':')[0]
-    service = 'HTTP@%s' % host
+class NegotiateView(View):
+    NEXT_URL_FIELD = 'next'
 
-    if 'HTTP_AUTHORIZATION' in request.META:
-        kind, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
-        print authstr
-        if kind == 'Negotiate':
-            result, context = kerberos.authGSSServerInit(service)
-            if result != 1:
-                return TemplateResponse(request, 'django_kerberos/error.html')
-            r = kerberos.authGSSServerStep(context, authstr)
-            if r == 1:
-                gssstring = kerberos.authGSSServerResponse(context)
+    def challenge(self, request, *args, **kwargs):
+        '''Send negotiate challenge'''
+        response = TemplateResponse(request, 'django_kerberos/unauthorized.html', status=401)
+        response['WWW-Authenticate'] = 'Negotiate'
+        return response
+
+    def host(self, request):
+        return app_settings.HOSTNAME or request.get_host().split(':')[0]
+
+    def principal_valid(self, request, *args, **kwargs):
+        '''Do something with the principal we received'''
+        user = authenticate(principal=self.principal)
+        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) 
+        if user:
+            auth_login(request, user)
+            if request.is_ajax() and not next_url:
+                return http.HttpResponse('true', content_type='application/json')
             else:
-                return www_authenticate(request)
-            principal = kerberos.authGSSServerUserName(context)
-            kerberos.authGSSServerClean(context)
-            user = authenticate(principal=principal)
-            if user:
-                auth_login(request, user)
+                next_url = next_url or settings.LOGIN_REDIRECT_URL
                 response = http.HttpResponseRedirect(next_url)
-                response['WWW-Authenticate'] = 'Negotiate %s' % gssstring
                 return response
-    return www_authenticate(request)
+        if request.is_ajax() and not next_url:
+            return http.HttpResponse('false', content_type='application/json')
+
+    def negotiate(self, request, *args, **kwargs):
+        '''Try to authenticate the user using SPNEGO and Kerberos'''
+
+        if 'HTTP_AUTHORIZATION' in request.META:
+            kind, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
+            if kind == 'Negotiate':
+                service = 'HTTP@%s' % self.host(request)
+                result, context = kerberos.authGSSServerInit(service)
+                if result != 1:
+                    return TemplateResponse(request, 'django_kerberos/error.html', status=500)
+                r = kerberos.authGSSServerStep(context, authstr)
+                if r == 1:
+                    gssstring = kerberos.authGSSServerResponse(context)
+                else:
+                    return self.challenge(request, *args, **kwargs)
+                self.principal = kerberos.authGSSServerUserName(context)
+                kerberos.authGSSServerClean(context)
+                response = self.principal_valid(request, *args, **kwargs)
+                if response:
+                    response['WWW-Authenticate'] = 'Negotiate %s' % gssstring
+                    return response
+        return self.challenge(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return self.negotiate(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.negotiate(request, *args, **kwargs)
+
+login = NegotiateView.as_view()
