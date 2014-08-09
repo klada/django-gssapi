@@ -53,3 +53,31 @@ authenticate method must be::
     class CustomKerberosBackend(object):
         def authenticate(self, principal=None):
             pass
+
+Sample application
+==================
+
+First you need to install django-kerberos into your environment like that::
+
+    python setup.py install
+
+If you want to try the sample application you must add this line to your `/etc/hosts` file, absolutely at the beginning::
+
+    127.0.0.1 test.example.com
+
+Then you must connect to your Kerberos administration server and add the
+principal HTTP/test.example.com and export its key in a keytab file::
+
+    $ kadmin -p myuser/admin
+    kadmin: addprinc -randkey HTTP/test.example.com
+    kadmin: ktadd -k /tmp/keytab HTTP/test.example.com
+
+Finally you can run the sample::
+
+    cd sample; KRB5_KTNAME=FILE:/tmp/keytab python ./manage.py runserver
+
+Now you should be able to login on http://test.example.com:8000/
+
+The sample project is configured so that all principal ending with `/admin` get
+the staff and superuser flags. You can change that by editing the key
+`KERBEROS_BACKEND_ADMIN_REGEXP` in `sample/sample/settings.py`.
