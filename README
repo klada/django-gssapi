@@ -44,6 +44,14 @@ Whether to create user if no existing model can be found, default is `False`.
 A regular expression that the principal must match to get superuser privileges,
 default is `None`. A classic example could be `r'^.*/admin$'`.
 
+`KERBEROS_HASHER_SERVICE_PRINCIPAL`
+-----------------------------------
+
+The service principal to user when checking a password against the
+KDC, you don't need the secret key for this principal, it should
+just exist inside the Kerberos database as the check is done by
+trying to get ticket for this service.
+
 Custom backend
 ==============
 
@@ -81,3 +89,15 @@ Now you should be able to login on http://test.example.com:8000/
 The sample project is configured so that all principal ending with `/admin` get
 the staff and superuser flags. You can change that by editing the key
 `KERBEROS_BACKEND_ADMIN_REGEXP` in `sample/sample/settings.py`.
+
+Pseudo hasher
+=============
+
+A pseudo hasher whose import path is `django_kerberos.hashers.KerberosHasher`
+provide a mean to associate a Django user model to a Kerberos identity.
+
+The content of the password field must be `kerberos$<principal name>`.
+
+To create an user for a principal you can do::
+
+   User.objects.create(username=new_username, password='kerberos$' + principal)

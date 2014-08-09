@@ -3,10 +3,11 @@ import sys
 class AppSettings(object):
     __PREFIX = 'KERBEROS_'
     __DEFAULTS = {
-            'HOSTNAME': None,
-            'KEYTAB': None,
             'BACKEND_CREATE': False,
             'BACKEND_ADMIN_REGEXP': None,
+            'SERVICE_PRINCIPAL': None,
+            'HOSTNAME': None,
+            'KEYTAB': None,
     }
 
     def __getattr__(self, name):
