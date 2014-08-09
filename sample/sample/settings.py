@@ -50,6 +50,7 @@ MIDDLEWARE_CLASSES = (
 
 AUTHENTICATION_BACKENDS = (
     'django_kerberos.backends.KerberosBackend',
+    'django_kerberos.backends.KerberosPasswordBackend',
 )
 
 ROOT_URLCONF = 'sample.urls'
@@ -89,6 +90,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 LOGIN_URL = 'kerberos-login'
+LOGIN_REDIRECT_URL = '/'
 
 KERBEROS_BACKEND_CREATE = True
 KERBEROS_BACKEND_ADMIN_REGEXP = r'^.*/admin$'
+
+execfile('config.py', globals())

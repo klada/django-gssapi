@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% include "django_kerberos/autologin.html" %}
+  {% if user.is_authenticated %}
+    <p>Hello {{ user }}</p>
+    {% if user.is_superuser %}
+      <p><a href="/admin">Admin</a></p>
+    {% endif %}
+    <p><a href="{% url "logout" %}?next=/">Logout</a></p>
+  {% else %}
+    <p>Please <a href="{% url "kerberos-login" %}">login with kerberos</a> or with your <a href="{% url "login" %}">password</a></p>
+  {% endif %}
+{% endblock %}
