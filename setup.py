@@ -39,7 +39,7 @@ def get_version():
 setup(name="django-kerberos",
       version=get_version(),
       license="AGPLv3 or later",
-      description="",
+      description="Kerberos authentication for Django",
       long_description=file('README').read(),
       url="http://dev.entrouvert.org/projects/authentic/",
       author="Entr'ouvert",
@@ -49,6 +49,7 @@ setup(name="django-kerberos",
       packages=find_packages('src'),
       install_requires=[
           'django>1.5',
+          'kerberos',
       ],
       package_dir={
           '': 'src',
