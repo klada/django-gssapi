@@ -50,6 +50,6 @@ Custom backend
 A custom authentication backend can be used, in this case the signature of the
 authenticate method must be::
 
-class CustomKerberosBackend(object):
-    def authenticate(self, principal=None):
-        pass
+    class CustomKerberosBackend(object):
+        def authenticate(self, principal=None):
+            pass
