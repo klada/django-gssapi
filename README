@@ -26,13 +26,6 @@ Hostname for retrieving the service key, the correspondig principal will be
 `HTTP/{KERBEROS_HOSTNAME}@DEFAULT_REAML`, default is `None`. If `None` the hostname
 from the request will be used.
 
-`KERBEROS_KEYTAB`
------------------
-
-File path of the keytab containing the key for the service principal, default
-is `None`. If `None` the default host keytab will be tried, which should fails
-since it's usually only readable by root.
-
 `KERBEROS_BACKEND_CREATE`
 -------------------------
 

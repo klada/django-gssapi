@@ -8,7 +8,6 @@ class AppSettings(object):
             'DEFAULT_REALM': None,
             'SERVICE_PRINCIPAL': '',
             'HOSTNAME': None,
-            'KEYTAB': None,
             'KEEP_PASSWORD': False,
     }
 
