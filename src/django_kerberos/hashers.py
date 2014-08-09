@@ -14,18 +14,25 @@ class KerberosHasher(BasePasswordHasher):
        match a given Kerberos identity'''
     algorithm = 'kerberos'
 
+    def default_realm(self):
+        '''Default realm for usernames without a realm'''
+        return app_settings.DEFAULT_REALM
+
+    def service_principal(self):
+        if not app_settings.SERVICE_PRINCIPAL:
+            raise ImproperlyConfigured('Kerberos pseudo password hasher needs '
+                    'the setting KERBEROS_SERVICE_PRINCIPAL to be '
+                    'set')
+        return app_settings.SERVICE_PRINCIPAL
+
     def verify(self, password, encoded):
         algorithm, principal = encoded.split('$', 2)
         assert algorithm == self.algorithm
         principal = force_bytes(principal)
         password = force_bytes(password)
-        if not app_settings.SERVICE_PRINCIPAL:
-            raise ImproperlyConfigured('Kerberos pseudo password hasher needs '
-                    'the setting KERBEROS_SERVICE_PRINCIPAL to be '
-                    'set')
         try:
             return kerberos.checkPassword(principal, password,
-                    app_settings.SERVICE_PRINCIPAL)
+                    self.service_principal(), self.default_realm())
         except kerberos.KrbError, e:
             logging.getLogger(__name__).error('password validation'
                     'for principal %r failed %s', principal, e)

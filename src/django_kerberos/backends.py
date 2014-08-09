@@ -34,13 +34,17 @@ class KerberosBackend(ModelBackend):
                     user.is_superuser = True
                     user.save()
 
+    def should_create_user(self):
+        '''Should we create users for new principals ?'''
+        return app_settings.BACKEND_CREATE
+
     def lookup_user(self, principal):
         '''Find the user model linked to this principal'''
         User = get_user_model()
         username_field = getattr(User, 'USERNAME_FIELD', 'username')
         username = self.username_from_principal(principal)
         kwargs = {username_field: username}
-        if app_settings.BACKEND_CREATE:
+        if self.should_create_user():
             user, created = User.objects.get_or_create(**kwargs)
             if created:
                 user.set_unusable_password()
