@@ -1,3 +1,4 @@
 include COPYING
-recursive-include sample *.py *.html
+recursive-include sample *.py *.html README *.py.example
 recursive-include src/django_kerberos/templates *.html
+recursive-include src/django_kerberos/static *.js
