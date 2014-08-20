@@ -8,12 +8,12 @@ Basic usage
 
 Add this to your project `urls.py`::
 
-    url('^accounts/kerberos/', include('django_auth_kerb.urls')),
+    url('^accounts/kerberos/', include('django_kerberos.urls')),
 
 And use the default authentication backend, by adding that to your `settings.py` file::
 
     AUTHENTICATION_BACKENDS = (
-        'django_auth_kerberos.backends.KerberosBackend',
+        'django_kerberos.backends.KerberosBackend',
     )
 
 Settings
