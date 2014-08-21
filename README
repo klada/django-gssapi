@@ -95,6 +95,20 @@ The sample project is configured so that all principal ending with `/admin` get
 the staff and superuser flags. You can change that by editing the key
 `KERBEROS_BACKEND_ADMIN_REGEXP` in `sample/sample/settings.py`.
 
+.. caution::
+   Only use A pointers for your domain name or if your domain name is a CNAME alias then create the HTTP principal for the target domain.
+
+   Web browsers implementing the SPNEGO HTTP authenticiation protocol
+   canonicalize domain names by always resolving to a DNS A record before
+   building the corresponding principal. So if you have the following zone::
+
+      test.example.com CNAME a.example.com
+      a.example.com A a.b.c.d
+
+   and if you connect to https://test.example.com then the browser is gonna try
+   to get a ticket for the HTTP/a.examepl.com service principal not for
+   HTTP/test.example.com.
+
 Pseudo hasher
 =============
 
