@@ -27,15 +27,22 @@ class NegotiateView(View):
         user = authenticate(principal=self.principal)
         next_url = request.REQUEST.get(self.NEXT_URL_FIELD) 
         if user:
-            auth_login(request, user)
-            if request.is_ajax() and not next_url:
-                return http.HttpResponse('true', content_type='application/json')
-            else:
-                next_url = next_url or settings.LOGIN_REDIRECT_URL
-                response = http.HttpResponseRedirect(next_url)
-                return response
+            return self.user_found(request, user, *args, **kwargs)
         if request.is_ajax() and not next_url:
-            return http.HttpResponse('false', content_type='application/json')
+            return self.user_not_found(request, *args, **kwargs)
+
+    def user_found(self, request, user, *args, **kwargs):
+        auth_login(request, user)
+        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) 
+        if request.is_ajax() and not next_url:
+            return http.HttpResponse('true', content_type='application/json')
+        else:
+            next_url = next_url or settings.LOGIN_REDIRECT_URL
+            response = http.HttpResponseRedirect(next_url)
+            return response
+
+    def user_not_found(self, request, *wargs, **kwargs):
+        return http.HttpResponse('false', content_type='application/json')
 
     def negotiate(self, request, *args, **kwargs):
         '''Try to authenticate the user using SPNEGO and Kerberos'''
