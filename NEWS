@@ -1,0 +1,7 @@
+1.2.0
+=====
+
+- fix module path errors in README
+- update README with autologin feature and warning on Kerberos service
+	principal for HTTP applications
+- refactor NegotiateView class to simplify overriding in child classes
