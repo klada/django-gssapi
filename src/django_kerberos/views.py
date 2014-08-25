@@ -12,10 +12,13 @@ from . import app_settings
 
 class NegotiateView(View):
     NEXT_URL_FIELD = 'next'
+    unauthorized_template_name = 'django_kerberos/unauthorized.html'
+    error_template_name = 'django_kerberos/error.html'
 
     def challenge(self, request, *args, **kwargs):
         '''Send negotiate challenge'''
-        response = TemplateResponse(request, 'django_kerberos/unauthorized.html', status=401)
+        response = TemplateResponse(request, self.unauthorized_template_name,
+                status=401)
         response['WWW-Authenticate'] = 'Negotiate'
         return response
 
@@ -53,7 +56,8 @@ class NegotiateView(View):
                 service = 'HTTP@%s' % self.host(request)
                 result, context = kerberos.authGSSServerInit(service)
                 if result != 1:
-                    return TemplateResponse(request, 'django_kerberos/error.html', status=500)
+                    return TemplateResponse(request, self.error.template_name,
+                            status=500)
                 r = kerberos.authGSSServerStep(context, authstr)
                 if r == 1:
                     gssstring = kerberos.authGSSServerResponse(context)
