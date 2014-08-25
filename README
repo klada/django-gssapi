@@ -128,3 +128,34 @@ If your users does not have their browser configured
 for SPNEGO HTTP authentication you can also provide
 a classic login/password form which check passwords
 using Kerberos.
+
+Autologin
+=========
+
+A template include is provided to implement autologin. It calls the Kerberos
+login view using AJAX. AJAX support in the login view makes the view return a
+JSON document containing a boolean value indicating if login was sucessfull.
+If login is succesfull the current view is reloaded.
+
+To use this template just add the following code to any of your templates::
+
+   {% include "django_kerberos/autologin.html" %}
+
+After a succesfull login a cookie is created which prevent autologin for the
+next 15 minutes, to permit login using other methods after an immediate logout.
+
+The template show an HTML div having the id "kerberos-autologin" and containing
+the text "Autologin..." so that you can add CSS styling to it.
+
+The javascript implementation of autologin is a script named
+"js/autlogin.html", it can be reused to implement autologin for other
+proctocols. Its only requirement is to have a view which return 'true' if a
+login is successfull on an HTTP GET request. The script provide a javascript
+function whose signature is::
+
+     autologin(url, callback[. timeout])
+
+url is the URL of the login view, callback is a javascript function which will
+receive true or false depending on the login success and timeout is the number
+of seconds after a succesfull login during which autologin is disabled, default
+is 15 minutes.
