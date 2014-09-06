@@ -57,6 +57,7 @@ setup(name="django-kerberos",
       package_data={
           'django_kerberos': [
               'templates/django_kerberos/*.html',
+              'static/js/*.js',
           ],
       },
       dependency_links=[],
