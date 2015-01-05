@@ -1,3 +1,5 @@
+import logging
+
 import kerberos
 
 from django import http
@@ -14,6 +16,10 @@ class NegotiateView(View):
     NEXT_URL_FIELD = 'next'
     unauthorized_template_name = 'django_kerberos/unauthorized.html'
     error_template_name = 'django_kerberos/error.html'
+
+    def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger(__name__)
+        super(NegotiateView, self).__init__(*args, **kwargs)
 
     def challenge(self, request, *args, **kwargs):
         '''Send negotiate challenge'''
@@ -54,8 +60,15 @@ class NegotiateView(View):
             kind, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
             if kind == 'Negotiate':
                 service = 'HTTP@%s' % self.host(request)
-                result, context = kerberos.authGSSServerInit(service)
+                try:
+                    result, context = kerberos.authGSSServerInit(service)
+                except kerberos.KrbError, e:
+                    self.logger.warning('exception during authGSSServerInit: %s', e)
+                    return TemplateResponse(request, self.error.template_name,
+                            status=500)
+
                 if result != 1:
+                    self.logger.warning('authGSSServerInit result is non-zero: %s', result)
                     return TemplateResponse(request, self.error.template_name,
                             status=500)
                 r = kerberos.authGSSServerStep(context, authstr)
