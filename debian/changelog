@@ -1,0 +1,5 @@
+python-django-kerberos (1.2.1) wheezy; urgency=low
+
+  * New upstream release 
+
+ -- Benjamin Dauvergne <bdauvergne@entrouvert.org>  Thu, 5 Sep 2014 19:00:29 +0100
