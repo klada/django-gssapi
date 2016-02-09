@@ -23,8 +23,7 @@ class NegotiateView(View):
 
     def challenge(self, request, *args, **kwargs):
         '''Send negotiate challenge'''
-        response = TemplateResponse(request, self.unauthorized_template_name,
-                status=401)
+        response = TemplateResponse(request, self.unauthorized_template_name, status=401)
         response['WWW-Authenticate'] = 'Negotiate'
         return response
 
@@ -34,7 +33,7 @@ class NegotiateView(View):
     def principal_valid(self, request, *args, **kwargs):
         '''Do something with the principal we received'''
         user = authenticate(principal=self.principal)
-        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) 
+        next_url = request.REQUEST.get(self.NEXT_URL_FIELD)
         if user:
             return self.user_found(request, user, *args, **kwargs)
         if request.is_ajax() and not next_url:
@@ -42,7 +41,7 @@ class NegotiateView(View):
 
     def user_found(self, request, user, *args, **kwargs):
         auth_login(request, user)
-        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) 
+        next_url = request.REQUEST.get(self.NEXT_URL_FIELD)
         if request.is_ajax() and not next_url:
             return http.HttpResponse('true', content_type='application/json')
         else:
@@ -60,24 +59,42 @@ class NegotiateView(View):
             kind, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
             if kind == 'Negotiate':
                 service = 'HTTP@%s' % self.host(request)
+                self.logger.debug(u'using service name %s', service)
+                self.logger.debug(u'Negotiate authstr %r', authstr)
                 try:
                     result, context = kerberos.authGSSServerInit(service)
                 except kerberos.KrbError, e:
-                    self.logger.warning('exception during authGSSServerInit: %s', e)
-                    return TemplateResponse(request, self.error.template_name,
-                            status=500)
-
-                if result != 1:
-                    self.logger.warning('authGSSServerInit result is non-zero: %s', result)
-                    return TemplateResponse(request, self.error.template_name,
-                            status=500)
-                r = kerberos.authGSSServerStep(context, authstr)
-                if r == 1:
-                    gssstring = kerberos.authGSSServerResponse(context)
-                else:
-                    return self.challenge(request, *args, **kwargs)
-                self.principal = kerberos.authGSSServerUserName(context)
-                kerberos.authGSSServerClean(context)
+                    self.logger.warning(u'exception during authGSSServerInit: %s', e)
+                    details = u'exception during authGSSServerInit: %s' % e
+                    return TemplateResponse(request, self.error_template_name,
+                                            context={'details': details}, status=500)
+                # ensure context is finalized
+                try:
+                    if result != 1:
+                        self.logger.warning(u'authGSSServerInit result is non-zero: %s', result)
+                        details = u'authGSSServerInit result is non-zero: %s' % result
+                        return TemplateResponse(request, self.error_template_name,
+                                                context={'details': details}, status=500)
+                    try:
+                        r = kerberos.authGSSServerStep(context, authstr)
+                    except kerberos.KrbError, e:
+                        self.logger.warning(u'exception during authGSSServerStep: %s', e)
+                        details = u'exception during authGSSServerStep: %s' % e
+                        return TemplateResponse(request, self.error_template_name,
+                                                context={'details': details}, status=500)
+                    if r == 1:
+                        gssstring = kerberos.authGSSServerResponse(context)
+                    else:
+                        return self.challenge(request, *args, **kwargs)
+                    try:
+                        self.principal = kerberos.authGSSServerUserName(context)
+                    except kerberos.KrbError, e:
+                        self.logger.warning(u'exception during authGSSServerUserName: %s', e)
+                        details = u'exception during authGSSServerUserName: %s' % e
+                        return TemplateResponse(request, self.error_template_name,
+                                                context={'details': details}, status=500)
+                finally:
+                    kerberos.authGSSServerClean(context)
                 response = self.principal_valid(request, *args, **kwargs)
                 if response:
                     response['WWW-Authenticate'] = 'Negotiate %s' % gssstring
