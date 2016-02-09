@@ -3,7 +3,11 @@
 ''' Setup script for django-kerberos
 '''
 
+import os
+import subprocess
+
 from setuptools import setup, find_packages
+
 
 def get_version():
     '''Use the VERSION, if absent generates a version with git describe, if not
@@ -13,15 +17,14 @@ def get_version():
         with open('VERSION', 'r') as v:
             return v.read()
     if os.path.exists('.git'):
-        p = subprocess.Popen(['git','describe','--dirty','--match=v*'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(['git', 'describe', '--dirty', '--match=v*'], stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
         result = p.communicate()[0]
         if p.returncode == 0:
             return result.split()[0][1:].replace('-', '.')
         else:
-            return '0.0.0-%s' % len(
-                    subprocess.check_output(
-                            ['git', 'rev-list', 'HEAD']).splitlines())
+            return '0.0.0-%s' % len(subprocess.check_output(
+                ['git', 'rev-list', 'HEAD']).splitlines())
     return '0.0.0'
 
 
@@ -49,5 +52,4 @@ setup(name="django-kerberos",
               'static/js/*.js',
           ],
       },
-      dependency_links=[],
-)
+      dependency_links=[])
