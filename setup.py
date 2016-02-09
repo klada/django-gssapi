@@ -28,7 +28,7 @@ def get_version():
             result = '0.0.0.%s+g%s' % (len(commits), commits[0][:6])
     else:
         result = '0.0.0'
-    return result.replace('-', '.').replace('.g', '+g')
+    return result
 
 
 setup(name="django-kerberos",
