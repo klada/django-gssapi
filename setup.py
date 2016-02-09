@@ -21,11 +21,14 @@ def get_version():
                              stderr=subprocess.PIPE)
         result = p.communicate()[0]
         if p.returncode == 0:
-            return result.split()[0][1:].replace('-', '.')
+            result = result.split()[0][1:].replace('-', '.')
         else:
-            return '0.0.0-%s' % len(subprocess.check_output(
-                ['git', 'rev-list', 'HEAD']).splitlines())
-    return '0.0.0'
+            commits = subprocess.check_output(
+                ['git', 'rev-list', 'HEAD']).splitlines()
+            result = '0.0.0.%s+g%s' % (len(commits), commits[0][:6])
+    else:
+        result = '0.0.0'
+    return result.replace('-', '.').replace('.g', '+g')
 
 
 setup(name="django-kerberos",
