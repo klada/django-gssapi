@@ -49,7 +49,7 @@ setup(name="django-kerberos",
       packages=find_packages('src'),
       install_requires=[
           'django>1.5',
-          'kerberos',
+          'pykerberos',
       ],
       package_dir={
           '': 'src',
