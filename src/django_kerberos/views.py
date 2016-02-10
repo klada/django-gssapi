@@ -64,8 +64,10 @@ class NegotiateView(View):
                 try:
                     result, context = kerberos.authGSSServerInit(service)
                 except kerberos.KrbError, e:
-                    self.logger.warning(u'exception during authGSSServerInit: %s', e)
-                    details = u'exception during authGSSServerInit: %s' % e
+                    self.logger.warning(u'exception during authGSSServerInit: %s, certainly a '
+                                        u'keytab problem', e)
+                    details = (u'exception during authGSSServerInit: %s, certainly a '
+                               u'keytab problem' % e)
                     return TemplateResponse(request, self.error_template_name,
                                             context={'details': details}, status=500)
                 # ensure context is finalized
