@@ -1,12 +1,25 @@
 #! /usr/bin/env python
 
-''' Setup script for django-kerberos
-'''
-
-import os
 import subprocess
+import os
 
 from setuptools import setup, find_packages
+from setuptools.command.sdist import sdist
+
+
+class eo_sdist(sdist):
+    def run(self):
+        print "creating VERSION file"
+        if os.path.exists('VERSION'):
+            os.remove('VERSION')
+        version = get_version()
+        version_file = open('VERSION', 'w')
+        version_file.write(version)
+        version_file.close()
+        sdist.run(self)
+        print "removing VERSION file"
+        if os.path.exists('VERSION'):
+            os.remove('VERSION')
 
 
 def get_version():
@@ -21,15 +34,12 @@ def get_version():
                              stderr=subprocess.PIPE)
         result = p.communicate()[0]
         if p.returncode == 0:
-            result = result.split()[0][1:].replace('-', '.')
+            result = result.split()[0][1:]
         else:
-            commits = subprocess.check_output(
-                ['git', 'rev-list', 'HEAD']).splitlines()
-            result = '0.0.0.%s+g%s' % (len(commits), commits[0][:6])
-    else:
-        result = '0.0.0'
-    return result
-
+            result = '0.0.0-%s' % len(subprocess.check_output(
+                ['git', 'rev-list', 'HEAD']).splitlines())
+        return result.replace('-', '.').replace('.g', '+g')
+    return '0.0.0'
 
 setup(name="django-kerberos",
       version=get_version(),
@@ -55,4 +65,4 @@ setup(name="django-kerberos",
               'static/js/*.js',
           ],
       },
-      dependency_links=[])
+      cmdclass={'sdist': eo_sdist})
