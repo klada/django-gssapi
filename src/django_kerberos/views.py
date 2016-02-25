@@ -6,6 +6,7 @@ from django import http
 from django.template.response import TemplateResponse
 from django.conf import settings
 from django.views.generic.base import View
+from django.contrib import messages
 
 from django.contrib.auth import authenticate, login as auth_login
 
@@ -32,25 +33,22 @@ class NegotiateView(View):
 
     def principal_valid(self, request, *args, **kwargs):
         '''Do something with the principal we received'''
+        self.logger.info(u'got ticket for principal %s', self.principal)
         user = authenticate(principal=self.principal)
-        next_url = request.REQUEST.get(self.NEXT_URL_FIELD)
+        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) or settings.LOGIN_REDIRECT_URL
         if user:
-            return self.user_found(request, user, *args, **kwargs)
-        if request.is_ajax() and not next_url:
-            return self.user_not_found(request, *args, **kwargs)
-
-    def user_found(self, request, user, *args, **kwargs):
-        auth_login(request, user)
-        next_url = request.REQUEST.get(self.NEXT_URL_FIELD)
-        if request.is_ajax() and not next_url:
-            return http.HttpResponse('true', content_type='application/json')
+            self.login_user(request, user)
+        if request.is_ajax():
+            return http.HttpResponse(bool(user), content_type='application/json')
         else:
-            next_url = next_url or settings.LOGIN_REDIRECT_URL
-            response = http.HttpResponseRedirect(next_url)
-            return response
+            if not user:
+                self.logger.warning(u'principal %s has no local user', self.principal)
+                messages.warning(request, _('Principal %s could not be authenticated') %
+                                 self.principal)
+            return http.HttpResponseRedirect(next_url)
 
-    def user_not_found(self, request, *wargs, **kwargs):
-        return http.HttpResponse('false', content_type='application/json')
+    def login_user(self, request, user):
+        auth_login(request, user)
 
     def negotiate(self, request, *args, **kwargs):
         '''Try to authenticate the user using SPNEGO and Kerberos'''
