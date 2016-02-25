@@ -39,7 +39,7 @@ class NegotiateView(View):
         if user:
             self.login_user(request, user)
         if request.is_ajax():
-            return http.HttpResponse(bool(user), content_type='application/json')
+            return http.HttpResponse('true' if user else 'false', content_type='application/json')
         else:
             if not user:
                 self.logger.warning(u'principal %s has no local user', self.principal)
