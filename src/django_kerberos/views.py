@@ -7,6 +7,7 @@ from django.template.response import TemplateResponse
 from django.conf import settings
 from django.views.generic.base import View
 from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth import authenticate, login as auth_login
 
