@@ -1,0 +1,14 @@
+Subject: change pykerberos package name for package name in wheezy
+Origin: entrouvert
+
+--- a/setup.py
++++ b/setup.py
+@@ -54,7 +54,7 @@ setup(name="django-kerberos",
+       packages=find_packages('src'),
+       install_requires=[
+           'django>1.5',
+-          'pykerberos',
++          'kerberos',
+       ],
+       package_dir={
+           '': 'src',
