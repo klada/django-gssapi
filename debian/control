@@ -9,7 +9,7 @@ X-Python-Version: >= 2.6
 
 Package: python-django-kerberos
 Architecture: all
-Depends: ${misc:Depends},
+Depends: ${misc:Depends}, ${python:Depends},
     python-django (>= 1.5),
     python-kerberos
 Description: Kerberos authentication frontend for Authentic2
