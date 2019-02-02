@@ -52,7 +52,7 @@ class NegotiateView(View):
         '''Do something with the principal we received'''
         self.logger.info(u'got ticket for principal %s', self.principal)
         user = authenticate(principal=self.principal)
-        next_url = request.REQUEST.get(self.NEXT_URL_FIELD) or settings.LOGIN_REDIRECT_URL
+        next_url = request.POST.get(self.NEXT_URL_FIELD) or request.GET.get(self.NEXT_URL_FIELD) or settings.LOGIN_REDIRECT_URL
         if user:
             self.login_user(request, user)
         if request.is_ajax():
@@ -88,8 +88,8 @@ class NegotiateView(View):
                 # ensure context is finalized
                 try:
                     if result != 1:
-                        self.logger.warning(u'authGSSServerInit result is non-zero: %s', result)
-                        details = u'authGSSServerInit result is non-zero: %s' % result
+                        self.logger.warning(u'authGSSServerInit result is non-one: %s', result)
+                        details = u'authGSSServerInit result is non-one: %s' % result
                         return TemplateResponse(request, self.error_template_name,
                                                 context={'details': details}, status=500)
                     try:

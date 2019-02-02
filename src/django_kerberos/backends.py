@@ -17,7 +17,7 @@
 import re
 import logging
 
-from . import app_settings
+import six
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_bytes
@@ -26,6 +26,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
 import kerberos
+
+from . import app_settings
 
 
 class KerberosBackend(ModelBackend):
@@ -74,7 +76,7 @@ class KerberosBackend(ModelBackend):
         self.provision_user(principal, user)
         return user
 
-    def authenticate(self, principal=None, **kwargs):
+    def authenticate(self, request=None, principal=None):
         if principal and self.authorize_principal(principal):
             return self.lookup_user(principal)
 
@@ -102,22 +104,26 @@ class KerberosPasswordBackend(KerberosBackend):
                                        ' set')
         return app_settings.SERVICE_PRINCIPAL
 
-    def authenticate(self, username=None, password=None, **kwargs):
+    def authenticate(self, request=None, username=None, password=None):
         '''Verify username and password using Kerberos'''
         if not username:
             return
 
-        principal = force_bytes(self.principal_from_username(username))
-        password = force_bytes(password)
+        kerb_principal = principal = self.principal_from_username(username)
+        kerb_password = password
+
+        if six.PY2:
+            kerb_principal = force_bytes(kerb_principal)
+            kerb_password = force_bytes(kerb_principal)
 
         try:
-            if not kerberos.checkPassword(principal, password,
+            if not kerberos.checkPassword(kerb_principal, kerb_password,
                                           self.service_principal(),
                                           self.default_realm()):
                 return
         except kerberos.KrbError as e:
             logging.getLogger(__name__).error(
-                'password validation forprincipal %r failed %s', principal, e)
+                'password validation for principal %r failed %s', principal, e)
             return
         else:
             if principal and self.authorize_principal(principal):
