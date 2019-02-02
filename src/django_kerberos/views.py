@@ -1,3 +1,19 @@
+# django-kerberos - SPNEGO/Kerberos authentication for Django applications
+# Copyright (C) 2014-2019 Entr'ouvert
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 
 import kerberos
@@ -62,7 +78,7 @@ class NegotiateView(View):
                 self.logger.debug(u'Negotiate authstr %r', authstr)
                 try:
                     result, context = kerberos.authGSSServerInit(service)
-                except kerberos.KrbError, e:
+                except kerberos.KrbError as e:
                     self.logger.warning(u'exception during authGSSServerInit: %s, certainly a '
                                         u'keytab problem', e)
                     details = (u'exception during authGSSServerInit: %s, certainly a '
@@ -78,7 +94,7 @@ class NegotiateView(View):
                                                 context={'details': details}, status=500)
                     try:
                         r = kerberos.authGSSServerStep(context, authstr)
-                    except kerberos.KrbError, e:
+                    except kerberos.KrbError as e:
                         self.logger.warning(u'exception during authGSSServerStep: %s', e)
                         details = u'exception during authGSSServerStep: %s' % e
                         return TemplateResponse(request, self.error_template_name,
@@ -89,7 +105,7 @@ class NegotiateView(View):
                         return self.challenge(request, *args, **kwargs)
                     try:
                         self.principal = kerberos.authGSSServerUserName(context)
-                    except kerberos.KrbError, e:
+                    except kerberos.KrbError as e:
                         self.logger.warning(u'exception during authGSSServerUserName: %s', e)
                         details = u'exception during authGSSServerUserName: %s' % e
                         return TemplateResponse(request, self.error_template_name,
