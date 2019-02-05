@@ -22,7 +22,8 @@ pip install tox"""
                         utils.publish_coverage_native('index.html')
                         utils.publish_pylint('pylint.out')
                     }
-                    junit 'junit*.xml'
+                    sh './merge-junit-results.py junit-*.xml >junit.xml'
+                    junit 'junit.xml'
                 }
             }
         }
