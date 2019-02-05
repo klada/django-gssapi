@@ -58,6 +58,8 @@ setup(name="django-kerberos",
       maintainer="Benjamin Dauvergne",
       maintainer_email="bdauvergne@entrouvert.com",
       packages=find_packages('src'),
+      zip_safe=False,
+      include_package_data=True,
       install_requires=[
           'six',
           'django>1.8',
