@@ -11,21 +11,23 @@ Build-Depends: dh-python,
     python3-setuptools,
     python3-django (>= 1.8)
 Standards-Version: 3.9.1
-X-Python-Version: >= 2.6
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
 
 Package: python-django-kerberos
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends},
+Depends: ${misc:Depends},
     python-six,
     python-django (>= 1.8),
     python-kerberos
-Description: Kerberos authentication frontend for Authentic2
+Description: Kerberos authentication for Django applications
 
 Package: python3-django-kerberos
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends},
+Depends: ${misc:Depends},
     python3-six,
     python3-django (>= 1.8),
     python3-kerberos
-Description: Kerberos authentication frontend for Authentic2
-
+Description: Kerberos authentication for Django applications
+ 
+ This is the Python 3 version of the package.
