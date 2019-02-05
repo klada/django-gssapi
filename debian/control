@@ -2,7 +2,8 @@ Source: python-django-kerberos
 Maintainer: Benjamin Dauvergne <bdauvergne@entrouvert.com>
 Section: python
 Priority: optional
-Build-Depends: debhelper (>= 9),
+Build-Depends: dh-python,
+    debhelper (>= 9),
     python-setuptools (>= 0.6b3),
     python-all (>= 2.6),
     python-django (>= 1.8),
