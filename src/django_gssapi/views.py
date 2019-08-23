@@ -16,7 +16,6 @@
 
 from __future__ import unicode_literals
 
-import base64
 import logging
 
 from django import http
@@ -24,7 +23,7 @@ from django.conf import settings
 from django.utils.http import is_safe_url
 from django.views.generic.base import View
 
-from django.contrib.auth import authenticate, login as auth_login, REDIRECT_FIELD_NAME
+from django.contrib.auth import login as auth_login, REDIRECT_FIELD_NAME
 
 from . import utils
 

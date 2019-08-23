@@ -30,6 +30,7 @@ logger = logging.getLogger('django_kerberos')
 
 class NegotiateContinue(Exception):
     def __init__(self, token):
+        super(NegotiateContinue, self).__init__()
         self.token = token
 
 

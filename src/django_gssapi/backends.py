@@ -34,6 +34,7 @@ logger = logging.getLogger('django_gssapi')
 class GSSAPIBackend(object):
     def authenticate(self, request, gssapi_name):
         warnings.warn('example backend do not use in production!')
+        # pylint: disable=invalid-name
         User = get_user_model()
         try:
             user = User.objects.get(username=str(gssapi_name))
@@ -52,6 +53,7 @@ class KerberosPasswordBackend(object):
         '''Verify username and password using Kerberos'''
         warnings.warn('Kerberos: example backend do not use in production!')
 
+        # pylint: disable=invalid-name
         User = get_user_model()
 
         if username is None:
