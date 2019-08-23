@@ -52,7 +52,7 @@ def negotiate(request, name=None, store=None):
     authstr = request.META['HTTP_AUTHORIZATION'][10:]
     try:
         in_token = base64.b64decode(authstr)
-    except ValueError:
+    except (TypeError, ValueError):
         return None, None
 
     server_ctx = gssapi.SecurityContext(creds=server_creds, usage='accept')
@@ -60,6 +60,8 @@ def negotiate(request, name=None, store=None):
         out_token = server_ctx.step(in_token)
     except gssapi.exceptions.GSSError as e:
         logging.debug('GSSAPI security context failure: %s', e)
+        return None, None
+
     if not server_ctx.complete:
         raise NegotiateContinue(out_token)
 

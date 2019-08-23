@@ -22,10 +22,16 @@ User = get_user_model()
 
 
 def test_kerberos_password(k5env, db):
-    user = User.objects.create(username=k5env.user_princ)
-
     k5env.run(['kdestroy'])
 
     assert authenticate(username=k5env.user_princ, password='nogood') is None
+    user = User.objects.create(username=k5env.user_princ, is_active=False)
+    assert not user.check_password(k5env.password('user'))
+    assert authenticate(username=k5env.user_princ, password=k5env.password('user')) is None
+    user.is_active = True
+    user.save()
+    assert authenticate(username=k5env.user_princ, password=k5env.password('user')) == user
+    user.refresh_from_db()
+    assert user.check_password(k5env.password('user'))
     assert authenticate(username=k5env.user_princ, password=k5env.password('user')) == user
     assert not os.path.exists(k5env.ccache)

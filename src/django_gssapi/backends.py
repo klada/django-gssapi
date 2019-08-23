@@ -70,13 +70,13 @@ class KerberosPasswordBackend(object):
 
         principal = self.principal_from_user(user)
 
+        name = gb.import_name(force_bytes(principal), gb.NameType.kerberos_principal)
         try:
-            name = gb.import_name(force_bytes(principal), gb.NameType.kerberos_principal)
-            if gb.acquire_cred_with_password(name, force_bytes(password)):
-                if not user.check_password(password):
-                    user.set_password(password)
-                    user.save()
-                return user
+            gb.acquire_cred_with_password(name, force_bytes(password))
         except gssapi.exceptions.GSSError as e:
             logger.debug('Kerberos: password check failed  for principal %s: %s', principal, e)
-        return None
+            return None
+        if not user.check_password(password):
+            user.set_password(password)
+            user.save()
+        return user

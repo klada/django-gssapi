@@ -29,19 +29,29 @@ def test_login(k5env, client, caplog, db, settings):
     response = client.get('/login/')
     assert response.status_code == 401
 
-    response = client.get('/login/', HTTP_AUTHORIZATION=k5env.spnego())
+    response = client.get('/login/', HTTP_AUTHORIZATION='Negotiate xxx')
+    assert response.status_code == 401
+    assert '_auth_user_id' not in client.session
 
+    response = client.get('/login/', HTTP_AUTHORIZATION=k5env.spnego())
     assert response.status_code == 401
     assert '_auth_user_id' not in client.session
 
     # create an user...
-    User.objects.create(username=k5env.user_princ)
+    user = User.objects.create(username=k5env.user_princ, is_active=False)
 
+    # still no good, user is inactive
+    response = client.get('/login/', HTTP_AUTHORIZATION=k5env.spnego())
+    assert response.status_code == 401
+    assert '_auth_user_id' not in client.session
+
+    user.is_active = True
+    user.save()
     # and retry.
     response = client.get('/login/', HTTP_AUTHORIZATION=k5env.spnego())
 
     assert response.status_code == 302
-    assert client.session['_auth_user_id']
+    assert int(client.session['_auth_user_id']) == user.id
 
     # break service name resolution
     settings.GSSAPI_NAME = gssapi.Name('HTTP@localhost', gssapi.NameType.hostbased_service)
