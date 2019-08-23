@@ -32,7 +32,7 @@ class eo_bdist_wheel(bdist_wheel):
         version_file = open('VERSION', 'w')
         version_file.write(version)
         version_file.close()
-        super(eo_bdist_wheel, self).run()
+        bdist_wheel.run(self)
         print("removing VERSION file")
         if os.path.exists('VERSION'):
             os.remove('VERSION')
@@ -68,7 +68,7 @@ setup(name="django-gssapi",
       license="AGPLv3 or later",
       description="GSSAPI authentication for Django",
       long_description=open('README').read(),
-      url="http://dev.entrouvert.org/projects/authentic/",
+      url="http://dev.entrouvert.org/projects/django-gssapi/",
       author="Entr'ouvert",
       author_email="info@entrouvert.org",
       maintainer="Benjamin Dauvergne",
