@@ -5,6 +5,7 @@ import os
 
 from setuptools import setup, find_packages
 from setuptools.command.sdist import sdist
+from wheel.bdist_wheel import bdist_wheel
 
 
 class eo_sdist(sdist):
@@ -17,6 +18,21 @@ class eo_sdist(sdist):
         version_file.write(version)
         version_file.close()
         sdist.run(self)
+        print("removing VERSION file")
+        if os.path.exists('VERSION'):
+            os.remove('VERSION')
+
+
+class eo_bdist_wheel(bdist_wheel):
+    def run(self):
+        print("creating VERSION file")
+        if os.path.exists('VERSION'):
+            os.remove('VERSION')
+        version = get_version()
+        version_file = open('VERSION', 'w')
+        version_file.write(version)
+        version_file.close()
+        super(eo_bdist_wheel, self).run()
         print("removing VERSION file")
         if os.path.exists('VERSION'):
             os.remove('VERSION')
@@ -74,4 +90,7 @@ setup(name="django-gssapi",
               'static/js/*.js',
           ],
       },
-      cmdclass={'sdist': eo_sdist})
+      cmdclass={
+          'sdist': eo_sdist,
+          'bdist_wheel': eo_bdist_wheel,
+      })
