@@ -43,6 +43,7 @@ class GSSAPIBackend(object):
         else:
             if user.is_active:
                 return user
+        return None
 
 
 class KerberosPasswordBackend(object):
@@ -62,10 +63,10 @@ class KerberosPasswordBackend(object):
             user = User._default_manager.get_by_natural_key(username)
         except User.DoesNotExist:
             logger.debug('Kerberos: no user for username %s', username)
-            return
+            return None
         else:
             if not user.is_active:
-                return
+                return None
 
         principal = self.principal_from_user(user)
 
@@ -78,3 +79,4 @@ class KerberosPasswordBackend(object):
                 return user
         except gssapi.exceptions.GSSError as e:
             logger.debug('Kerberos: password check failed  for principal %s: %s', principal, e)
+        return None
