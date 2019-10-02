@@ -41,7 +41,7 @@ pip install tox"""
         always {
             script {
                 utils = new Utils()
-                utils.mail_notify(currentBuild, env, 'admin+jenkins-django-gssapi@entrouvert.com')
+                utils.mail_notify(currentBuild, env, 'ci+jenkins-django-gssapi@entrouvert.org')
             }
         }
         success {
